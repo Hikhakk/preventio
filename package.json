@@ -1,0 +1,39 @@
+{
+  "name": "preventio",
+  "version": "0.1.0",
+  "description": "Cross-platform keep-awake utility with Claude Code auto-activation.",
+  "type": "module",
+  "bin": {
+    "preventio": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "npm run build && node --test",
+    "start": "npm run build && node dist/cli.js start"
+  },
+  "keywords": [
+    "keep-awake",
+    "caffeine",
+    "no-sleep",
+    "prevent-sleep",
+    "insomnia",
+    "claude-code",
+    "cross-platform"
+  ],
+  "author": "Hikhakk",
+  "license": "MIT",
+  "dependencies": {
+    "systray2": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}
