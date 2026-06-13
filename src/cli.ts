@@ -19,12 +19,15 @@ import {
 } from "./core/state.js";
 import { runDaemon } from "./daemon.js";
 import { installHooks, uninstallHooks } from "./hooks/install.js";
+import { installService, uninstallService } from "./service.js";
 
 const CLI_PATH = fileURLToPath(import.meta.url);
 
 function ensureDaemon(): void {
   if (daemonRunning()) return;
-  const child = spawn(process.execPath, [CLI_PATH, "start", "--no-tray"], {
+  // Start with the tray; it degrades to headless automatically where there's no
+  // GUI session, so whichever instance wins the race still shows a menu-bar icon.
+  const child = spawn(process.execPath, [CLI_PATH, "start"], {
     detached: true,
     stdio: "ignore",
   });
@@ -116,12 +119,15 @@ function help(): void {
 
 Usage:
   preventio start [--no-tray]   Start the daemon (with menu-bar tray by default)
+  preventio stop                Stop the daemon
   preventio on                  Keep awake now (manual hold)
   preventio off                 Release the manual hold
   preventio status              Show current state
   preventio keepdisplay on|off  Also keep the screen on (or not)
   preventio install-hooks       Auto-keep-awake while Claude Code runs
   preventio uninstall-hooks     Remove the Claude Code hooks
+  preventio install-service     Start Preventio automatically at login
+  preventio uninstall-service   Remove the login service
 
 Low-level (used by hooks):
   preventio hold add|remove --type <session|tool> --id <id>
@@ -153,6 +159,20 @@ async function main(): Promise<void> {
       nudgeDaemon();
       console.log("Manual hold released.");
       break;
+    case "stop": {
+      const pid = readPid();
+      if (pid && isAlive(pid)) {
+        try {
+          process.kill(pid, "SIGTERM");
+          console.log(`Stopped daemon (pid ${pid}).`);
+        } catch (err) {
+          console.error(`Could not stop daemon: ${String(err)}`);
+        }
+      } else {
+        console.log("Daemon not running.");
+      }
+      break;
+    }
     case "status":
       printStatus();
       break;
@@ -190,6 +210,12 @@ async function main(): Promise<void> {
       break;
     case "uninstall-hooks":
       uninstallHooks();
+      break;
+    case "install-service":
+      installService(CLI_PATH);
+      break;
+    case "uninstall-service":
+      uninstallService();
       break;
     default:
       help();

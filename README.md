@@ -63,9 +63,24 @@ This launches the daemon with a tray icon. Click it for:
 - a status line showing whether you're awake and why
 - **Quit**
 
-To start it automatically at login, add `preventio start` to your OS login items
-(macOS: System Settings → General → Login Items; Windows: Startup folder; Linux:
-your desktop's autostart).
+To start it automatically at login, run:
+
+```bash
+preventio install-service     # start Preventio at every login
+preventio uninstall-service   # undo
+```
+
+This registers a per-OS background service that launches Preventio (with the tray)
+whenever you log in, and restarts it if it crashes:
+
+| OS | Mechanism |
+|----|-----------|
+| macOS | LaunchAgent in `~/Library/LaunchAgents/com.preventio.daemon.plist` |
+| Linux | systemd **user** unit `~/.config/systemd/user/preventio.service` (headless) |
+| Windows | hidden launcher in your Startup folder |
+
+On Linux a systemd user session is required; if `install-service` reports one is
+missing, run `loginctl enable-linger $USER`.
 
 ### Command line
 
@@ -75,6 +90,7 @@ preventio off              # allow sleep again
 preventio status           # show current state
 preventio keepdisplay on   # also keep the screen on
 preventio keepdisplay off
+preventio stop             # stop the background daemon
 ```
 
 `preventio on` / hooks auto-start a background daemon if one isn't already running,
