@@ -31,6 +31,11 @@ export async function runDaemon({
   ensureDirs();
   writePid(process.pid);
 
+  // A misbehaving tray must never take the daemon down with it.
+  process.on("unhandledRejection", (err) =>
+    console.error(`[preventio] unhandled rejection: ${String(err)}`),
+  );
+
   const inhibitor = new Inhibitor();
   let tray: TrayHandle | null = null;
 
